@@ -38,17 +38,17 @@ public class NinePatchImage {
 		if (isNinePatch) return;
 		
 		// Otherwise, we need to add a border
-		BufferedImage newImage=new BufferedImage(image.getWidth()+2, image.getHeight()+2, image.getType());
+		BufferedImage newImage=new BufferedImage(image.getWidth()+2, image.getHeight()+2, getSafeType());
 		newImage.getRaster().setRect(1, 1, image.getRaster());
 		image=newImage;
 		isNinePatch=true;
 	}
-	
-	public void ensurePlain() {
+
+    public void ensurePlain() {
 		if (!isNinePatch) return;
 		
 		// Otherwise, we need to remove 2 rows and 2 columns
-		BufferedImage newImage=new BufferedImage(image.getWidth()-2, image.getHeight()-2, image.getType());
+		BufferedImage newImage=new BufferedImage(image.getWidth()-2, image.getHeight()-2, getSafeType());
 		Raster src=image.getRaster().createChild(1, 1, newImage.getWidth(), newImage.getHeight(), 
 				0, 0, null);
 		newImage.getRaster().setRect(src);
@@ -171,7 +171,7 @@ public class NinePatchImage {
 		
 		int[] colMarkers=getMarkers(MODE_SCALEX);
 		int[] rowMarkers=getMarkers(MODE_SCALEY);
-		BufferedImage dest=new BufferedImage(targetWidth, targetHeight, image.getType());
+		BufferedImage dest=new BufferedImage(targetWidth, targetHeight, getSafeType());
 		
 		int colLoops=0, colRem=0;
 		if (colMarkers.length>0) {
@@ -266,4 +266,13 @@ public class NinePatchImage {
 				1, 0, 0, null);
 		dest.getRaster().setDataElements(0, ydest, srcRaster);
 	}
+
+    private int getSafeType() {
+        int type = image.getType();
+        if (type == BufferedImage.TYPE_CUSTOM)
+            // Passing BufferedImage.TYPE_CUSTOM to BufferedImage constructor will result in "java.lang.IllegalArgumentException: Unknown image type 0"
+            return BufferedImage.TYPE_INT_ARGB;
+        return type;
+    }
+
 }
